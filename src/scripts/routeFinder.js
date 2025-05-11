@@ -1,0 +1,109 @@
+import { map } from "./displayMap";
+import BuildingData from '../data/universityBuildings.json';
+import L from "leaflet";
+
+let activeWorker = null;
+let currentRouteLayer = null; // <- nowa zmienna do przechowywania rysowanej trasy
+
+const routeFinder = async () => {
+    console.log('🚀 Uruchomiono funkcję routeFinder');
+
+    if (activeWorker) {
+        activeWorker.terminate();
+        activeWorker = null;
+    }
+
+    if (currentRouteLayer) {
+        map.removeLayer(currentRouteLayer);
+        currentRouteLayer = null;
+    }
+
+    const startChoice = document.querySelector('.startChoice').value;
+    const endChoice = document.querySelector('.endChoice').value;
+
+    if (!startChoice || !endChoice) {
+        console.error("Nie wybrano budynków");
+        alert("Wybierz budynki początkowy i docelowy");
+        return;
+    }
+
+    let startNode, endNode;
+
+    for (let building of BuildingData.buildings) {
+        if (building[0].code === startChoice) {
+            startNode = building[0].node;
+        }
+        if (building[0].code === endChoice) {
+            endNode = building[0].node;
+        }
+        if (startNode && endNode) break;
+    }
+
+    if (!startNode || !endNode) {
+        console.error("Nie znaleziono wybranych budynków.");
+        alert("Nie znaleziono wybranych budynków. Spróbuj ponownie wybrać budynki.");
+        return;
+    }
+
+    try {
+        const network = await import('../layers/osm_wroclaw_roads.json');
+        const selectedMode = document.querySelector('input[name="transportTypeRadio"]:checked').value;
+
+        activeWorker = new Worker(new URL('./pathWorker.js', import.meta.url), { type: 'module' });
+
+        const workerTimeout = setTimeout(() => {
+            if (activeWorker) {
+                console.warn("Worker timeout - przerywanie");
+                activeWorker.terminate();
+                activeWorker = null;
+                alert("Obliczanie trasy zajęło zbyt dużo czasu. Spróbuj ponownie.");
+            }
+        }, 30000);
+
+        activeWorker.postMessage({
+            start: startNode,
+            goal: endNode,
+            network: network.default,
+            mode: selectedMode
+        });
+
+        activeWorker.onmessage = function(e) {
+            clearTimeout(workerTimeout);
+            const { path } = e.data;
+
+            if (!path || path.length === 0) {
+                console.warn("Brak trasy.");
+                alert("Nie udało się znaleźć trasy. Spróbuj z innymi budynkami lub rodzajem transportu.");
+                activeWorker.terminate();
+                activeWorker = null;
+                return;
+            }
+
+            // Rysowanie trasy
+            const latlngs = path.map(coord => [coord[1], coord[0]]); // Leaflet używa [lat, lng]
+            currentRouteLayer = L.polyline(latlngs, {
+                color: 'deepskyblue',
+                weight: 7,
+                opacity: 0.9
+            }).addTo(map);
+
+            map.fitBounds(currentRouteLayer.getBounds());
+
+            activeWorker.terminate();
+            activeWorker = null;
+        };
+
+        activeWorker.onerror = function(error) {
+            clearTimeout(workerTimeout);
+            console.error("Błąd workera:", error);
+            alert("Wystąpił błąd podczas wyszukiwania trasy. Spróbuj ponownie.");
+            activeWorker.terminate();
+            activeWorker = null;
+        };
+    } catch (error) {
+        console.error("Błąd podczas wyszukiwania trasy:", error);
+        alert("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
+    }
+};
+
+export default routeFinder;
