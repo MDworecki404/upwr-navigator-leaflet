@@ -5,6 +5,7 @@ import gsap from 'gsap'
 import UniversityBuildings from '../data/universityBuildings.json'
 import { ref } from 'vue'
 import routeFinder from '../scripts/routeFinder.js'
+import userRouteFinder from '../scripts/userRouteFinder.js'
 
 export default {
   setup(){
@@ -81,6 +82,20 @@ export default {
         display: 'none',
         ease: 'power2.inOut'
       });
+      gsap.to('#buildingToBuilding', {
+        duration: 0,
+        backgroundColor: '#28a745',
+        borderColor: '#28a745',
+        color: 'white',
+        ease: 'power2.inOut'
+      });
+      gsap.to('#userToBuilding', {
+        duration: 0,
+        backgroundColor: '#0d6efd',
+        borderColor: '#0d6efd',
+        color: 'white',
+        ease: 'power2.inOut'
+      });
     },
     showUserToBuildingPanel() {
       gsap.to('#userToBuilding_panel', {
@@ -93,9 +108,24 @@ export default {
         display: 'none',
         ease: 'power2.inOut'
       });
+      gsap.to('#userToBuilding', {
+        duration: 0,
+        backgroundColor: '#28a745',
+        borderColor: '#28a745',
+        color: 'white',
+        ease: 'power2.inOut'
+      });
+      gsap.to('#buildingToBuilding', {
+        duration: 0,
+        backgroundColor: '#0d6efd',
+        borderColor: '#0d6efd',
+        color: 'white',
+        ease: 'power2.inOut'
+      });
     },
     routeFinder,
-    changeBaseMap
+    changeBaseMap,
+    userRouteFinder
   },
 }
 
@@ -124,8 +154,12 @@ export default {
       <label for="Satellite" class="form-check-label"> &nbsp; Satelita</label>
     </span>
     <span>
-      <input type="radio" name="basemapLayer" @click="changeBaseMap" value="Terrain" id="Terrain" class="form-check-input">
-      <label for="Terrain" class="form-check-label"> &nbsp; Teren</label>
+      <input type="radio" name="basemapLayer" @click="changeBaseMap" value="Traffic" id="Traffic" class="form-check-input">
+      <label for="Traffic" class="form-check-label"> &nbsp; Natężenie ruchu Google</label>
+    </span>
+    <span>
+      <input type="radio" name="basemapLayer" @click="changeBaseMap" value="GoogleTerrainMap" id="GoogleTerrain" class="form-check-input">
+      <label for="GoogleTerrainMap" class="form-check-label"> &nbsp; Google Maps</label>
     </span>
   </div>
   <div id="navigation_panel">
@@ -162,7 +196,23 @@ export default {
       <button class="btn btn-secondary" @click="routeFinder" type="button">Sprawdź trasę</button>
     </div>
     <div id="userToBuilding_panel">
-      Lorem ribus quisquam quasi suscipit repellat. Consequatur fuga incidunt, tenetur sequi veritatis provident minus id cum voluptates?
+      <span class="lead">Wybierz budynek</span>
+        <select class="form-select-sm mb-1 userEndChoice" v-model="selectedEndBuilding">
+            <option value="">Wybierz budynek</option>
+            <option 
+            v-for="building in buildings" 
+            :key="building.code" 
+            :value="building.code"
+            >
+            {{ building.code +" - "+ building.name }}
+            </option>
+        </select>
+        <br>
+        <span class="lead">Wybierz rodzaj transportu</span>
+        <label class="form-check-label"><input type="radio" name="userTransportTypeRadio" value="bikeFoot" class="bikeFoot form-check-input" checked>Pieszo/Rowerem</label>
+        <label class="form-check-label"><input type="radio" name="userTransportTypeRadio" value="car" class="car form-check-input">Samochodem</label>
+        <br>
+        <button class="btn btn-secondary" @click="userRouteFinder">Pokaż trasę</button>
     </div>
   </div>
 </template>
@@ -270,7 +320,7 @@ export default {
     top: 55px;
     right: 10px;
     z-index: 1000;
-    width: 200px;
+    width: auto;
     height: auto;
     padding: 5px;
     background-color: white;
@@ -284,4 +334,5 @@ export default {
       outline: 1px solid rgba(0, 0, 0, 0.26)
     }
   }
+ 
 </style>

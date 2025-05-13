@@ -1,11 +1,24 @@
 import { map } from "./displayMap";
 import BuildingData from '../data/universityBuildings.json';
 import L from "leaflet";
-import { currentRouteLayer, clearRouteLayer, drawRoute  } from "./displayMap";
+import { currentRouteLayer, clearRouteLayer, drawRoute } from "./displayMap";
 
 let activeWorker = null;
 
-const routeFinder = async () => {
+const getCurrentPosition = () => {
+
+    return new Promise((resolve, reject) => {
+        // Wymuś świeżą lokalizację przez opcje
+        const options = {
+            enableHighAccuracy: true,
+            maximumAge: 0,    // Ważne: nie używaj buforowanych danych
+            timeout: 10000    // Timeout po 10 sekundach
+        };
+        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    });
+}
+
+const userRouteFinder = async () => {
     console.log('🚀 Uruchomiono funkcję routeFinder');
 
     clearRouteLayer();
@@ -15,42 +28,41 @@ const routeFinder = async () => {
         activeWorker = null;
     }
 
-    if (currentRouteLayer) {
-        map.removeLayer(currentRouteLayer);
-        currentRouteLayer = null;
+
+    let startNode = [];
+    try {
+        const position = await getCurrentPosition();
+        startNode = [position.coords.longitude, position.coords.latitude];
+        console.log('Pobrano pozycję startową:', startNode);
+    } catch (error) {
+        console.error("Nie udało się pobrać lokalizacji:", error);
+        // Ukryj animację ładowania w przypadku błędu
+        // gsap.to(loadingIconSVG, {opacity: 0, duration: 0.5});
+        // gsap.to(loadingIconSVG, {visibility: 'hidden', delay: 0.5});
+        alert("Nie udało się pobrać lokalizacji. Sprawdź uprawnienia lub spróbuj ponownie.");
+        return;
     }
-
-    const startChoice = document.querySelector('.startChoice').value;
-    const endChoice = document.querySelector('.endChoice').value;
-
-    if (!startChoice || !endChoice) {
-        console.error("Nie wybrano budynków");
-        alert("Wybierz budynki początkowy i docelowy");
+    
+    const endChoice = document.querySelector('.userEndChoice').value;
+    if (!endChoice) {
+        console.error("Nie wybrano budynku docelowego");
+        gsap.to(loadingIconSVG, {opacity: 0, duration: 0.5});
+        gsap.to(loadingIconSVG, {visibility: 'hidden', delay: 0.5});
+        alert("Wybierz budynek docelowy");
         return;
     }
 
-    let startNode, endNode;
-
+    let endNode;
     for (let building of BuildingData.buildings) {
-        if (building[0].code === startChoice) {
-            startNode = building[0].node;
-        }
         if (building[0].code === endChoice) {
             endNode = building[0].node;
+            break; // Dodaj break po znalezieniu, dla optymalizacji
         }
-        if (startNode && endNode) break;
-    }
-
-    if (!startNode || !endNode) {
-        console.error("Nie znaleziono wybranych budynków.");
-        alert("Nie znaleziono wybranych budynków. Spróbuj ponownie wybrać budynki.");
-        return;
     }
 
     try {
         const network = await import('../layers/osm_wroclaw_roads.json');
         const selectedMode = document.querySelector('input[name="transportTypeRadio"]:checked').value;
-        const progressBar = document.querySelector('.progress-bar');
 
         activeWorker = new Worker(new URL('./pathWorker.js', import.meta.url), { type: 'module' });
 
@@ -103,4 +115,4 @@ const routeFinder = async () => {
     }
 };
 
-export default routeFinder;
+export default userRouteFinder;

@@ -2,6 +2,7 @@ import L from 'leaflet'
 import '../plugins/ActiveLayers'
 
 let map
+let currentRouteLayer = null;
 
 const hybrid = L.tileLayer(
     'http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', 
@@ -21,12 +22,20 @@ const satellite = L.tileLayer(
     attribution: 'Autor: <b></i>Marek Dworecki</i></b> | Map data ©2025 Google'
 }
 );
-const terrain = L.tileLayer(
-    'http://mt0.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}',
-    {
-    attribution: 'Autor: <b></i>Marek Dworecki</i></b> | Map data ©2025 Google'
-}
-);
+
+const traffic = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m,traffic&x={x}&y={y}&z={z}&hl={language}', {
+	attribution: 'Map data &copy;2025 Google',
+	subdomains: '0123',
+	maxZoom: 22,
+	language: 'en'
+});
+
+const googleTerrainMap = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m,transit&x={x}&y={y}&z={z}&hl={language}', {
+	attribution: 'Map data &copy;2025 Google',
+	subdomains: '0123',
+	maxZoom: 22,
+	language: 'en'
+});
 
 let basemap = osm
 
@@ -47,8 +56,11 @@ const changeBaseMap = () => {
         case 'Satellite':
             basemap = satellite;
             break;
-        case 'Terrain':
-            basemap = terrain;
+        case 'Traffic':
+            basemap = traffic;
+            break;
+        case 'GoogleTerrainMap':
+            basemap = googleTerrainMap;
             break;
     }
     if (map && basemap) {
@@ -64,4 +76,24 @@ const displayMap = () => {
 
 }
 
-export {displayMap, map, changeBaseMap}
+export function clearRouteLayer() {
+  if (currentRouteLayer) {
+    map.removeLayer(currentRouteLayer);
+    currentRouteLayer = null;
+  }
+}
+
+export function drawRoute(latlngs) {
+  // usuń starą trasę:
+  clearRouteLayer();
+
+  currentRouteLayer = L.polyline(latlngs, {
+    color: 'deepskyblue',
+    weight: 7,
+    opacity: 0.9
+  }).addTo(map);
+
+  map.fitBounds(currentRouteLayer.getBounds());
+}
+
+export {displayMap, map, changeBaseMap, currentRouteLayer}
