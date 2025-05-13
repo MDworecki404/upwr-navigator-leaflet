@@ -1,9 +1,7 @@
 import L from 'leaflet'
 import '../plugins/ActiveLayers'
-import '../../node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js'
+import '../plugins/L.Control.Locate.min.js'
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css'
-
-
 
 let map
 let currentRouteLayer = null;
