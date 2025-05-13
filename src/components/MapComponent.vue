@@ -7,6 +7,7 @@ import { ref } from 'vue'
 import routeFinder from '../scripts/routeFinder.js'
 import userRouteFinder from '../scripts/userRouteFinder.js'
 import { showUPWrBuildings, defaultLayers } from '../scripts/layers.js'
+import { map } from '../scripts/displayMap.js'
 
 export default {
   setup(){

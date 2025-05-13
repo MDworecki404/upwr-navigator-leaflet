@@ -1,5 +1,9 @@
 import L from 'leaflet'
 import '../plugins/ActiveLayers'
+import '../../node_modules/leaflet.locatecontrol/dist/L.Control.Locate.min.js'
+import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css'
+
+
 
 let map
 let currentRouteLayer = null;
@@ -76,6 +80,15 @@ const displayMap = () => {
     map = L.map('map', {
         layers:[basemap]
     }).setView([51.11, 17.065], 15);
+
+    L.control.locate({
+        showPopup: false,
+        strings: {
+            title: 'Pokaż moją pozycję',
+        },
+    }).addTo(map);
+
+    
 
 }
 
