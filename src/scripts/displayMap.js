@@ -7,33 +7,36 @@ let currentRouteLayer = null;
 const hybrid = L.tileLayer(
     'http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', 
     {
-    attribution: 'Autor: <b></i>Marek Dworecki</i></b> | Map data ©2025 Google'
+    attribution: 'Autor: <b></i>Marek Dworecki</i></b> | Map data ©2025 Google',
+    maxZoom: 19,
     }
 );
 const osm = L.tileLayer(
     'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     {
-    attribution: 'Autor: <b></i>Marek Dworecki</i></b> | © OpenStreetMap contributors'
+    attribution: 'Autor: <b></i>Marek Dworecki</i></b> | © OpenStreetMap contributors',
+    maxZoom: 19,
 }
 );
 const satellite = L.tileLayer(
     'http://mt0.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}',
     {
-    attribution: 'Autor: <b></i>Marek Dworecki</i></b> | Map data ©2025 Google'
+    attribution: 'Autor: <b></i>Marek Dworecki</i></b> | Map data ©2025 Google',
+    maxZoom: 19,
 }
 );
 
 const traffic = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m,traffic&x={x}&y={y}&z={z}&hl={language}', {
 	attribution: 'Map data &copy;2025 Google',
 	subdomains: '0123',
-	maxZoom: 22,
+	maxZoom: 19,
 	language: 'en'
 });
 
 const googleTerrainMap = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m,transit&x={x}&y={y}&z={z}&hl={language}', {
 	attribution: 'Map data &copy;2025 Google',
 	subdomains: '0123',
-	maxZoom: 22,
+	maxZoom: 19,
 	language: 'en'
 });
 
@@ -72,28 +75,28 @@ const displayMap = () => {
 
     map = L.map('map', {
         layers:[basemap]
-    }).setView([51.11, 17.05], 13);
+    }).setView([51.11, 17.065], 15);
 
 }
 
 export function clearRouteLayer() {
-  if (currentRouteLayer) {
-    map.removeLayer(currentRouteLayer);
-    currentRouteLayer = null;
-  }
+    if (currentRouteLayer) {
+        map.removeLayer(currentRouteLayer);
+        currentRouteLayer = null;
+    }
 }
 
 export function drawRoute(latlngs) {
   // usuń starą trasę:
-  clearRouteLayer();
+    clearRouteLayer();
 
-  currentRouteLayer = L.polyline(latlngs, {
-    color: 'deepskyblue',
-    weight: 7,
-    opacity: 0.9
-  }).addTo(map);
+    currentRouteLayer = L.polyline(latlngs, {
+        color: 'deepskyblue',
+        weight: 7,
+        opacity: 0.9
+    }).addTo(map);
 
-  map.fitBounds(currentRouteLayer.getBounds());
+    map.fitBounds(currentRouteLayer.getBounds());
 }
 
 export {displayMap, map, changeBaseMap, currentRouteLayer}

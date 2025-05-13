@@ -2,6 +2,7 @@ import { map } from "./displayMap";
 import BuildingData from '../data/universityBuildings.json';
 import L from "leaflet";
 import { currentRouteLayer, clearRouteLayer, drawRoute } from "./displayMap";
+import gsap from "gsap";
 
 let activeWorker = null;
 
@@ -20,7 +21,7 @@ const getCurrentPosition = () => {
 
 const userRouteFinder = async () => {
     console.log('🚀 Uruchomiono funkcję routeFinder');
-
+    
     clearRouteLayer();
 
     if (activeWorker) {
@@ -28,6 +29,15 @@ const userRouteFinder = async () => {
         activeWorker = null;
     }
 
+    gsap.fromTo('#loadingCircle',
+        { visibility: 'visible', rotation: 0 },
+            {
+                rotation: 360,
+                repeat: -1,
+                ease: "steps(12)", // 360 / 45 = 8 kroków
+                duration: 2       // czas jednego pełnego obrotu, możesz dostosować
+            }
+    );
 
     let startNode = [];
     try {
@@ -36,9 +46,7 @@ const userRouteFinder = async () => {
         console.log('Pobrano pozycję startową:', startNode);
     } catch (error) {
         console.error("Nie udało się pobrać lokalizacji:", error);
-        // Ukryj animację ładowania w przypadku błędu
-        // gsap.to(loadingIconSVG, {opacity: 0, duration: 0.5});
-        // gsap.to(loadingIconSVG, {visibility: 'hidden', delay: 0.5});
+        gsap.to('#loadingCircle', {visibility: 'hidden'})
         alert("Nie udało się pobrać lokalizacji. Sprawdź uprawnienia lub spróbuj ponownie.");
         return;
     }
@@ -46,8 +54,7 @@ const userRouteFinder = async () => {
     const endChoice = document.querySelector('.userEndChoice').value;
     if (!endChoice) {
         console.error("Nie wybrano budynku docelowego");
-        gsap.to(loadingIconSVG, {opacity: 0, duration: 0.5});
-        gsap.to(loadingIconSVG, {visibility: 'hidden', delay: 0.5});
+        gsap.to('#loadingCircle', {visibility: 'hidden'})
         alert("Wybierz budynek docelowy");
         return;
     }
@@ -71,6 +78,7 @@ const userRouteFinder = async () => {
                 console.warn("Worker timeout - przerywanie");
                 activeWorker.terminate();
                 activeWorker = null;
+                gsap.to('#loadingCircle', {visibility: 'hidden'})
                 alert("Obliczanie trasy zajęło zbyt dużo czasu. Spróbuj ponownie.");
             }
         }, 30000);
@@ -91,6 +99,7 @@ const userRouteFinder = async () => {
                 alert("Nie udało się znaleźć trasy. Spróbuj z innymi budynkami lub rodzajem transportu.");
                 activeWorker.terminate();
                 activeWorker = null;
+                gsap.to('#loadingCircle', {visibility: 'hidden'})
                 return;
             }
 
@@ -100,11 +109,13 @@ const userRouteFinder = async () => {
 
             activeWorker.terminate();
             activeWorker = null;
+            gsap.to('#loadingCircle', {visibility: 'hidden'})
         };
 
         activeWorker.onerror = function(error) {
             clearTimeout(workerTimeout);
             console.error("Błąd workera:", error);
+            gsap.to('#loadingCircle', {visibility: 'hidden'})
             alert("Wystąpił błąd podczas wyszukiwania trasy. Spróbuj ponownie.");
             activeWorker.terminate();
             activeWorker = null;

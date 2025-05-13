@@ -6,6 +6,7 @@ import UniversityBuildings from '../data/universityBuildings.json'
 import { ref } from 'vue'
 import routeFinder from '../scripts/routeFinder.js'
 import userRouteFinder from '../scripts/userRouteFinder.js'
+import { showUPWrBuildings, defaultLayers } from '../scripts/layers.js'
 
 export default {
   setup(){
@@ -16,12 +17,13 @@ export default {
     return {
       buildings,
       selectedStartBuilding,
-      selectedEndBuilding
+      selectedEndBuilding,
     }
   },
 
   mounted: () => {
-    displayMap()
+    displayMap(),
+    defaultLayers()
   },
   methods:{
     showPanel(panel) {
@@ -125,13 +127,15 @@ export default {
     },
     routeFinder,
     changeBaseMap,
-    userRouteFinder
+    userRouteFinder,
+    showUPWrBuildings
   },
 }
 
 </script>
 
 <template>
+  <img src="../assets/loading-2-svgrepo-com.svg" id="loadingCircle">
   <div id="map" @click="hidePanel"></div>
   <div id="layer_picker" @click="showPanel('layers')">
     <img src="../assets/layers-svgrepo-com.svg">
@@ -158,8 +162,14 @@ export default {
       <label for="Traffic" class="form-check-label"> &nbsp; Natężenie ruchu Google</label>
     </span>
     <span>
-      <input type="radio" name="basemapLayer" @click="changeBaseMap" value="GoogleTerrainMap" id="GoogleTerrain" class="form-check-input">
+      <input type="radio" name="basemapLayer" @click="changeBaseMap" value="GoogleTerrainMap" id="GoogleTerrainMap" class="form-check-input">
       <label for="GoogleTerrainMap" class="form-check-label"> &nbsp; Google Maps</label>
+    </span>
+    <br>
+    <span><b>Warstwy:</b></span>
+    <span>
+      <input type="checkbox" @change="showUPWrBuildings" checked name="vectorLayer" value="upwrBuildings" id="upwrBuildings" class="form-check-input">
+      <label for="upwrBuildings" class="form-check-label"> &nbsp; Budynki UPWr</label>
     </span>
   </div>
   <div id="navigation_panel">
@@ -334,5 +344,15 @@ export default {
       outline: 1px solid rgba(0, 0, 0, 0.26)
     }
   }
- 
+
+  #loadingCircle {
+    position: absolute;
+    bottom: 10px;
+    left: calc(50% - 32px);
+    width: 64px;
+    height: 64px;
+    z-index: 1000;
+    pointer-events: none;
+    visibility: hidden;
+  }
 </style>
