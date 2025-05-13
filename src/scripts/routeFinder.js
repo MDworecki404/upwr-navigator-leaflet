@@ -15,11 +15,6 @@ const routeFinder = async () => {
         activeWorker = null;
     }
 
-    if (currentRouteLayer) {
-        map.removeLayer(currentRouteLayer);
-        currentRouteLayer = null;
-    }
-
     const startChoice = document.querySelector('.startChoice').value;
     const endChoice = document.querySelector('.endChoice').value;
 
